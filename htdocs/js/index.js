@@ -1,0 +1,112 @@
+/**
+ *  @file       index.js
+ *  @brief      The entry file of BreakIt.
+ *  @author     Yiwei Chiao (ywchiao@gmail.com)
+ *  @date       10/11/2018 created.
+ *  @date       11/23/2018 last modified.
+ *  @version    0.1.0
+ *  @since      0.1.0
+ *  @copyright  MIT, © 2018 Yiwei Chiao
+ *  @details
+ *
+ *  The entry file of BreakIt.
+ */
+{
+	"start": "flappy",
+	"story": {
+		"flappy": {
+			"content": [
+				"Welcome to phoney bird. Once the game starts, press 1 to flap.",
+				"redirect:start"
+			]
+		},
+		"start": {
+			"content": function() {
+				delete this.choice;
+				this.score = 0;
+				this.first = true;
+				this.height = 2;
+
+				return "redirect:recurse";
+			}
+		},
+		"recurse": {
+			"content": function() {
+				this.height = parseInt(this.height)
+				this.score = parseInt(this.score)
+				this.pipeHeight = parseInt(this.pipeHeight)
+
+				var c = [];
+
+				if (this.height > 0) {
+					this.height -= 1;
+				}
+
+				if (this.height > 2) {
+					this.height = 2;
+				}
+
+				if (this.first) {
+					this.first = false;
+				} else {
+					if (this.height != this.pipeHeight) {
+						return "redirect:gameover";
+					}
+
+					this.score++;
+					c.push("" + this.score + " " + this.helpers.pluralizePoints(this.score) + ".");
+				}
+
+				this.pipeHeight = Math.floor(Math.random() * 3);
+
+				c.push("You are flying at a " + this.helpers.heightString(this.height) + " height. A pipe is approaching with a " + this.helpers.heightString(this.pipeHeight) + " height.");
+
+				return c;
+			},
+			"routes": {
+				"1": "flap",
+				"any": "recurse",
+				"timeout": "recurse",
+				"options": {
+					"timeout": 2
+				}
+			}
+		},
+		"flap": {
+			"content": function() {
+				this.height = parseInt(this.height) + 2;
+				return "redirect:recurse";
+			}
+		},
+		"gameover": {
+			"content": function() {
+				return "You have lost. Your final score is " + this.score + " " + this.helpers.pluralizePoints(this.score) + ". Press 1 to play again.";
+			},
+			"routes": {
+				1: "start",
+				"timeout": "thanks",
+				"options": {
+					"timeout": 3
+				}
+			}
+		},
+		"thanks": {
+			"content": [
+				"Thank you for playing!", 
+				"pause:2"
+			]
+		}
+	},
+	"helpers": {
+		"pluralizePoints": function(points) {
+			if (points == 1) return "point";
+			return "points";
+		},
+		heightString: function(height) {
+			if (height == 0) return "low";
+			if (height == 1) return "medium";
+			if (height == 2) return "high";
+			return "unknown";
+		}
+	}
+}
